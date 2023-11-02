@@ -1,0 +1,270 @@
+{
+	"info": {
+		"_postman_id": "e0663cbb-2fe7-461a-9d6b-d692c23cf8ea",
+		"name": "appointment-list-api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23505477"
+	},
+	"item": [
+		{
+			"name": "list of appointments returned",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.variables.set('state', 'texas');",
+							"pm.variables.set('treatmentShortId', 'weightloss');"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"Response status code is 200\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Validate the 'data' object\", function () {",
+							"  const responseData = pm.response.json();",
+							"  ",
+							"  pm.expect(responseData).to.be.an('object');",
+							"  pm.expect(responseData.data).to.exist.and.to.be.an('object');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Validate the 'cappedAvailableTimes' array\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.data).to.be.an('object');",
+							"    pm.expect(responseData.data.cappedAvailableTimes).to.exist.and.to.be.an('array', \"Value should be an array\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Verify that the 'startTime' and 'endTime' fields are present in each object of the 'cappedAvailableTimes' array\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.data.cappedAvailableTimes).to.be.an('array');",
+							"    ",
+							"    responseData.data.cappedAvailableTimes.forEach(function (time) {",
+							"        pm.expect(time.startTime).to.exist.and.to.be.a('string');",
+							"        pm.expect(time.endTime).to.exist.and.to.be.a('string');",
+							"    });",
+							"});pm.test(\"Response time is within acceptable range\", function() {",
+							"  pm.expect(pm.response.responseTime).to.be.below(2000, \"Response time should be less than 2000ms\");",
+							"});pm.test(\"Response content type is JSON\", function () {",
+							"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+							"});pm.test(\"Response schema is valid\", function () {",
+							"  var schema = {",
+							"    type: \"object\",",
+							"    properties: {",
+							"      data: {",
+							"        type: \"object\",",
+							"        properties: {",
+							"          cappedAvailableTimes: {",
+							"            type: \"array\",",
+							"            items: {",
+							"              type: \"object\",",
+							"              properties: {",
+							"                startTime: {",
+							"                  type: \"string\"",
+							"                },",
+							"                endTime: {",
+							"                  type: \"string\"",
+							"                },",
+							"                provider: {",
+							"                  type: \"object\",",
+							"                  properties: {",
+							"                    id: {",
+							"                      type: \"string\"",
+							"                    },",
+							"                    displayName: {",
+							"                      type: \"string\"",
+							"                    },",
+							"                    __typename: {",
+							"                      type: \"string\"",
+							"                    }",
+							"                  },",
+							"                  required: [\"id\", \"displayName\", \"__typename\"]",
+							"                }",
+							"              },",
+							"              required: [\"startTime\", \"endTime\", \"provider\"]",
+							"            }",
+							"          }",
+							"        },",
+							"        required: [\"cappedAvailableTimes\"]",
+							"      }",
+							"    },",
+							"    required: [\"data\"]",
+							"  };",
+							"",
+							"  var response = pm.response.json();",
+							"  pm.expect(tv4.validate(response, schema)).to.be.true;",
+							"});// Verify the length of cappedAvailableTimes array",
+							"pm.test(\"The cappedAvailableTimes array length must be greater than zero\", function () {",
+							"    const responseData = pm.response.json();",
+							"    const cappedAvailableTimes = responseData.data.cappedAvailableTimes;",
+							"   ",
+							"    pm.expect(cappedAvailableTimes.length).to.be.greaterThan(0, \"cappedAvailableTimes should not be empty\");",
+							"",
+							"    cappedAvailableTimes.forEach((time)=>{",
+							"      const startTime = time.startTime;",
+							"      pm.expect(startTime).to.exist.and.to.be.a('string').and.to.have.lengthOf.above(0, \"startTime should not be empty\");",
+							"      ",
+							"      const endTime = time.endTime;",
+							"      pm.expect(endTime).to.exist.and.to.be.a('string').and.to.have.lengthOf.above(0, \"endTime should not be empty\");",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"operationName\": \"cappedAvailableTimes\",\n    \"variables\": {\n        \"minimumDate\": \"{{minimumDate}}\",\n        \"maximumDate\":\"{{maximumDate}}\",\n        \"state\": \"{{state}}\",\n        \"treatmentShortId\": \"{{treatmentShortId}}\"\n    },\n    \"query\": \"query cappedAvailableTimes($state: String!, $treatmentShortId: String!, $minimumDate: timestamptz!, $maximumDate: timestamptz!) {\\n  cappedAvailableTimes: appointment_capped_available_appointment_slots(\\n    where: {start_time: {_gt: $minimumDate, _lt: $maximumDate}, state: {_eq: $state}, treatment_object: {short_id: {_eq: $treatmentShortId}}, language: {_eq: \\\"en-US\\\"}, provider: {_and: {id: {_is_null: false}}}}\\n    order_by: {start_time: asc}\\n  ) {\\n    ...CappedAvailableSlotsFragment\\n    __typename\\n  }\\n}\\n\\nfragment CappedAvailableSlotsFragment on appointment_capped_available_appointment_slots {\\n  startTime: start_time\\n  endTime: end_time\\n  provider {\\n    id\\n    displayName: display_name\\n    __typename\\n  }\\n  __typename\\n}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://henry-prod.hasura.app/v1/graphql",
+					"protocol": "https",
+					"host": [
+						"henry-prod",
+						"hasura",
+						"app"
+					],
+					"path": [
+						"v1",
+						"graphql"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Empty list of appointments for non approved state",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Empty list of appointments for non approved state\", function () {",
+							"    pm.response.to.have.status(200);",
+							"",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson.data.cappedAvailableTimes).to.eql([]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"/*",
+							"  Default values for these variables are set here, but can be changed in the test cases.",
+							"*/",
+							"pm.variables.set('state', 'idaho');",
+							"pm.variables.set('treatmentShortId', 'weightloss');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"operationName\": \"cappedAvailableTimes\",\n    \"variables\": {\n        \"minimumDate\": \"{{minimumDate}}\",\n        \"maximumDate\":\"{{maximumDate}}\",\n        \"state\": \"{{state}}\",\n        \"treatmentShortId\": \"{{treatmentShortId}}\"\n    },\n    \"query\": \"query cappedAvailableTimes($state: String!, $treatmentShortId: String!, $minimumDate: timestamptz!, $maximumDate: timestamptz!) {\\n  cappedAvailableTimes: appointment_capped_available_appointment_slots(\\n    where: {start_time: {_gt: $minimumDate, _lt: $maximumDate}, state: {_eq: $state}, treatment_object: {short_id: {_eq: $treatmentShortId}}, language: {_eq: \\\"en-US\\\"}, provider: {_and: {id: {_is_null: false}}}}\\n    order_by: {start_time: asc}\\n  ) {\\n    ...CappedAvailableSlotsFragment\\n    __typename\\n  }\\n}\\n\\nfragment CappedAvailableSlotsFragment on appointment_capped_available_appointment_slots {\\n  startTime: start_time\\n  endTime: end_time\\n  provider {\\n    id\\n    displayName: display_name\\n    __typename\\n  }\\n  __typename\\n}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://henry-prod.hasura.app/v1/graphql",
+					"protocol": "https",
+					"host": [
+						"henry-prod",
+						"hasura",
+						"app"
+					],
+					"path": [
+						"v1",
+						"graphql"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"let moment = require('moment');",
+					"",
+					"/*",
+					"  These variables will be used to query the date range of available appointment time slots.",
+					"*/",
+					"pm.collectionVariables.set('minimumDate', moment().add(2, 'days').toISOString());",
+					"pm.collectionVariables.set('maximumDate', moment().add(11, 'days').toISOString());",
+					"",
+					"/*",
+					"  These utility functions can be used by requests in the collection",
+					"  - isWithinDatetimeRange(): evaluates if a datetime falls in minimumDate and maximumDate range",
+					"  - isFifteenMinuteTimeSlot(): evaluates if start and end datetimes are a 15 minute time slot",
+					"*/",
+					"utils = {",
+					"    isWithinDatetimeRange: function(dateTime) {",
+					"        return moment(dateTime).isBetween(pm.collectionVariables.get('minimumDate'), pm.collectionVariables.get('maximumDate'));",
+					"    },",
+					"",
+					"    isFifteenMinuteTimeSlot: function(startTime, endTime) {",
+					"        const compareTime = moment(startTime).add(15, 'minutes');",
+					"        const expectedTime = moment(endTime);",
+					"",
+					"        return compareTime.isSame(expectedTime);",
+					"    }",
+					"};"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "minimumDate",
+			"value": ""
+		},
+		{
+			"key": "maximumDate",
+			"value": ""
+		}
+	]
+}
